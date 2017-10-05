@@ -4,6 +4,7 @@ A bot that:
 * Picks a random OverWatch hero given hero type
 * Returns information about users and roles in a discord server
 * Contains a blacklist feature to manage who can interact with the bot
+![Alt text](winston.png?raw=true "Optional Title")
 ### Before Installing
 Obtain a wolframalpha API application ID and Discord Application secret token.
 ### Prerequisites
