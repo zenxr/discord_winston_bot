@@ -5,7 +5,7 @@ A bot that:
 * Returns information about users and roles in a discord server
 * Contains a blacklist feature to manage who can interact with the bot
 ![Alt text](winston.png?raw=true "Optional Title")
-## Usage
+## Usage (in Discord)
 * !help
 * !genji
 * !winston pick hero (all|attack|support|tank|defense|team)
