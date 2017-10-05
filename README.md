@@ -29,14 +29,14 @@ You must install:
 * discord.py library
 * wolframalpha python library
 ### Installing and Running
-Place the WA app_id and discord app's secret token accordingly in the main bot file (scrappy.py). If you'd like to use just the WA query functionality, it can be found in testingWA.py (place your WA app_id in it first)
+Place the WA app_id and discord app's secret token accordingly in the main bot file (winston.py). If you'd like to use just the WA query functionality, it can be found in testingWA.py (place your WA app_id in it first)
 * Go into the directory that contains the programs
 ```
 cd ~/Winston
 ```
-* Execute scrappy.py to run the main bot
+* Execute winston.py to run the main bot
 ```
-python3.5 scrappy.py
+python3.5 winston.py
 ```
 * If you'd like to run the files created testing the blacklist and WolframAlpha functions, then:
 ```
