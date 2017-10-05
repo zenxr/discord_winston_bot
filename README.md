@@ -1,4 +1,4 @@
-#Winston Bot
+# Winston Bot
 A bot that:
 * Uses Wolfram Alpha's API to answer questions (more than just math!)
 * Picks a random OverWatch hero given hero type
