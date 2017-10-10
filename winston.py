@@ -16,7 +16,7 @@ app_id = 'your_wolfram_alpha_app_id'
 ttsbool = False 
 
 # my user ID for discord
-ownerID = "276935311559229440"
+ownerID = "your_owner_ID"
 
 # long concatenated help message
 # '```texttexttext```' puts a neat box around the message
