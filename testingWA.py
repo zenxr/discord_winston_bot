@@ -5,7 +5,7 @@ import sys
 
 
 # your wolfram alpha app id
-app_id = '8KHGJP-YYasdfasdf'
+app_id = 'your_app_id'
 client = wolframalpha.Client(app_id)
 
 question = 'Why is the sky blue?'
