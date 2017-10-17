@@ -4,19 +4,22 @@ import wolframalpha
 import re
 import random
 import time
+import json
+import requests
+import operator
 
 # create a new client
 client = discord.Client()
 # secret token
-token = 'your_secret_token_here'
+token = 'your_bot_token'
 # app_id for wolfram alpha API
-app_id = 'your_wolfram_alpha_app_id'
+app_id = 'your_ID'
 
 # text-to-speech variable
 ttsbool = False 
 
 # my user ID for discord
-ownerID = "276935311559229440"
+ownerID = "your_user_id"
 
 # long concatenated help message
 # '```texttexttext```' puts a neat box around the message
@@ -24,6 +27,7 @@ helpm = " \r\nI'm Winston.\r\nAsk me anything and I'll try to answer.\r\n"
 helpm = helpm + "```Valid commands:\r\n===============\r\n"
 helpm = helpm + "!help,\r\n"
 helpm = helpm + "!genji, \r\n"
+helpm = helpm + "!winston player (playerID), \r\n"
 helpm = helpm + "!winston pick hero (all|attack|support|tank|defense|team),\r\n"
 helpm = helpm + "!role list (list roles on this server), \r\n"
 helpm = helpm + "!role (rolename) (print the permissions of a role), \r\n"
@@ -150,6 +154,61 @@ def pickAHero(category):
     else:
         # if the function is ran & invalid string, return error
         return("Valid options : defense, attack, tank, support")
+
+def playerLookup(playerID):
+    # have to customize user agent
+    head = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0'
+    }
+    # open the url
+    url = "https://owapi.net/api/v3/u/"
+    # configure parameters (will be changed later)
+    user = 'Poseidon-12214'
+    category = 'heroes'
+    gameType = 'competitive'
+    # make the request and convert the json to dictionary
+    r = requests.get(url + playerID + "/" + category, headers=head)
+    data = r.json()
+    # get play_time data
+    playTime = data["us"]["heroes"]["playtime"][gameType]
+    # remove all heroes with 0 hours
+    cleanPT = {hero : time for hero,time in playTime.items() if time}
+    # convert playtime to minutes
+    for key in cleanPT:
+        cleanPT[key] = int(cleanPT[key] * 60)
+    # sort into a decreasing list of tuples
+    sortedPT = sorted(cleanPT.items(), key=operator.itemgetter(1))
+    sortedPT.reverse()
+    # we now have a list of heroes and playtimes sorted by most played in a list of tuples
+    stats = data["us"]["heroes"]["stats"][gameType]
+    # we only want to include the 5 heroes with most playtime
+    count = 0
+    # create a new dictionary to hold our output data
+    outputHeroData = {}
+    for hero in sortedPT:
+        # stop at 5 heroes
+        if count == 6:
+            break
+        # increment counter
+        count = count + 1
+        # get the games played number
+        games_played = stats[hero[0]]["general_stats"]["games_played"]
+        # this way we dont divide by 0
+        if (stats[hero[0]]["general_stats"]["games_lost"] == games_played):
+            games_won = 0
+        else:
+            games_won = stats[hero[0]]["general_stats"]["games_won"]
+        # if you've played no games, you havent won.
+        if games_played == 0:
+            winRate = 0
+        else:
+            winRate = games_won/games_played
+        # {("ana" : 100, 0.99999), ...}
+        outputHeroData[hero[0]] = [hero[1], winRate]
+    # sort by the time played (x:x[1])
+    outputHeroData_sorted = sorted(outputHeroData.items(), key=lambda x:x[1])
+    # largest first
+    outputHeroData_sorted.reverse()
+    return(outputHeroData_sorted)
 
 # this runs when the client initally connects
 @client.event
@@ -293,6 +352,36 @@ async def on_message(message):
                 hero = pickAHero(m[3])
                 print("Picking hero (" + m[3] + ") : " + str(hero))
             await client.send_message(message.channel, message.author.mention + ' : ' + str(hero), tts=ttsbool)
+        # if player lookup
+        elif m[1] == "player":
+            # run playerLookup function
+            playerstats = playerLookup(m[2])
+            # just formatting into an ascii table
+            outputMsg = "```|  Hero Name     |     Time Played |      WinRate |\r\n"
+            outputMsg = outputMsg + "__________________________________________________"
+            for hero in playerstats:
+                # keeping everything nice and even length-wise
+                # discord doesn't handle \t well in code blocks
+                outputHeroString = "  " + hero[0]
+                while len(outputHeroString) < 16:
+                    outputHeroString = outputHeroString + " "
+                outputMsg = outputMsg + "\r\n|" + outputHeroString + "|"
+                # if no hours played, remove from output
+                if (hero[1][0] // 60) == 0:
+                    outputHeroTime = str(hero[1][0] % 60) + "mins |"
+                else:
+                    outputHeroTime = str(hero[1][0] // 60) + " hr, " + str(hero[1][0] % 60) + " mins |"
+                while len(outputHeroTime) < 18:
+                    outputHeroTime = " " + outputHeroTime
+                outputMsg = outputMsg + outputHeroTime
+                # convert to percentage
+                outputHeroWinRate = str(int(hero[1][1]*100)) + "% winrate |"
+                while len(outputHeroWinRate) < 15:
+                    outputHeroWinRate = " " + outputHeroWinRate
+                outputMsg = outputMsg + outputHeroWinRate
+            # end code block
+            outputMsg = outputMsg + "```"
+            await client.send_message(message.channel, outputMsg)
         # if blacklist command
         elif m[1] == "blacklist":
             canKick = False
