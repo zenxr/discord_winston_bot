@@ -11,15 +11,15 @@ import operator
 # create a new client
 client = discord.Client()
 # secret token
-token = 'MzMwMjE1NTgyNTU5NjMzNDA4.DDd2HQ.4H4Tr1pEbPaLmWgaoMGvAeYnDvU'
+token = 'your_discord_app_token'
 # app_id for wolfram alpha API
-app_id = '8KHGJP-YY7AKKGGWU'
+app_id = 'your_id'
 
 # text-to-speech variable
 ttsbool = False 
 
 # my user ID for discord
-ownerID = "276935311559229440"
+ownerID = "your_user_ID"
 
 # long concatenated help message
 # '```texttexttext```' puts a neat box around the message
