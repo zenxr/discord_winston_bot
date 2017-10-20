@@ -11,15 +11,15 @@ import operator
 # create a new client
 client = discord.Client()
 # secret token
-token = 'your_bot_token'
+token = 'MzMwMjE1NTgyNTU5NjMzNDA4.DDd2HQ.4H4Tr1pEbPaLmWgaoMGvAeYnDvU'
 # app_id for wolfram alpha API
-app_id = 'your_ID'
+app_id = '8KHGJP-YY7AKKGGWU'
 
 # text-to-speech variable
 ttsbool = False 
 
 # my user ID for discord
-ownerID = "your_user_id"
+ownerID = "276935311559229440"
 
 # long concatenated help message
 # '```texttexttext```' puts a neat box around the message
@@ -27,7 +27,7 @@ helpm = " \r\nI'm Winston.\r\nAsk me anything and I'll try to answer.\r\n"
 helpm = helpm + "```Valid commands:\r\n===============\r\n"
 helpm = helpm + "!help,\r\n"
 helpm = helpm + "!genji, \r\n"
-helpm = helpm + "!winston player (playerID), \r\n"
+helpm = helpm + "!winston player (playerID) (gamemode -- optional), \r\n"
 helpm = helpm + "!winston pick hero (all|attack|support|tank|defense|team),\r\n"
 helpm = helpm + "!role list (list roles on this server), \r\n"
 helpm = helpm + "!role (rolename) (print the permissions of a role), \r\n"
@@ -155,7 +155,7 @@ def pickAHero(category):
         # if the function is ran & invalid string, return error
         return("Valid options : defense, attack, tank, support")
 
-def playerLookup(playerID):
+def playerLookup(playerID, mode):
     # have to customize user agent
     head = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0'
     }
@@ -164,7 +164,7 @@ def playerLookup(playerID):
     # configure parameters (will be changed later)
     user = 'Poseidon-12214'
     category = 'heroes'
-    gameType = 'competitive'
+    gameType = mode
     # make the request and convert the json to dictionary
     r = requests.get(url + playerID + "/" + category, headers=head)
     data = r.json()
@@ -182,31 +182,22 @@ def playerLookup(playerID):
     stats = data["us"]["heroes"]["stats"][gameType]
     # we only want to include the 5 heroes with most playtime
     count = 0
-    # create a new dictionary to hold our output data
     outputHeroData = {}
     for hero in sortedPT:
-        # stop at 5 heroes
         if count == 6:
             break
-        # increment counter
         count = count + 1
-        # get the games played number
         games_played = stats[hero[0]]["general_stats"]["games_played"]
-        # this way we dont divide by 0
         if (stats[hero[0]]["general_stats"]["games_lost"] == games_played):
             games_won = 0
         else:
             games_won = stats[hero[0]]["general_stats"]["games_won"]
-        # if you've played no games, you havent won.
         if games_played == 0:
             winRate = 0
         else:
             winRate = games_won/games_played
-        # {("ana" : 100, 0.99999), ...}
         outputHeroData[hero[0]] = [hero[1], winRate]
-    # sort by the time played (x:x[1])
     outputHeroData_sorted = sorted(outputHeroData.items(), key=lambda x:x[1])
-    # largest first
     outputHeroData_sorted.reverse()
     return(outputHeroData_sorted)
 
@@ -354,19 +345,21 @@ async def on_message(message):
             await client.send_message(message.channel, message.author.mention + ' : ' + str(hero), tts=ttsbool)
         # if player lookup
         elif m[1] == "player":
-            # run playerLookup function
-            playerstats = playerLookup(m[2])
-            # just formatting into an ascii table
-            outputMsg = "```|  Hero Name     |     Time Played |      WinRate |\r\n"
-            outputMsg = outputMsg + "__________________________________________________"
+            mode = "competitive"
+            # future functionality, if checking quickplay stuff edit ehre
+            #if len(m) == 4:
+            #    mode = m[3]
+            playerstats = playerLookup(m[2], mode)
+            outputMsg = "\r\n```diff\r\n"
+            outputMsg = outputMsg + "Stats for " + m[2] + "\r\n\r\n"
+            outputMsg = outputMsg + "---------------------------------------------------\r\n"
+            outputMsg = outputMsg + "|  Hero Name     |     Time Played |      WinRate |\r\n"
+            outputMsg = outputMsg + "---------------------------------------------------"
             for hero in playerstats:
-                # keeping everything nice and even length-wise
-                # discord doesn't handle \t well in code blocks
                 outputHeroString = "  " + hero[0]
                 while len(outputHeroString) < 16:
                     outputHeroString = outputHeroString + " "
                 outputMsg = outputMsg + "\r\n|" + outputHeroString + "|"
-                # if no hours played, remove from output
                 if (hero[1][0] // 60) == 0:
                     outputHeroTime = str(hero[1][0] % 60) + "mins |"
                 else:
@@ -374,12 +367,10 @@ async def on_message(message):
                 while len(outputHeroTime) < 18:
                     outputHeroTime = " " + outputHeroTime
                 outputMsg = outputMsg + outputHeroTime
-                # convert to percentage
                 outputHeroWinRate = str(int(hero[1][1]*100)) + "% winrate |"
                 while len(outputHeroWinRate) < 15:
                     outputHeroWinRate = " " + outputHeroWinRate
                 outputMsg = outputMsg + outputHeroWinRate
-            # end code block
             outputMsg = outputMsg + "```"
             await client.send_message(message.channel, outputMsg)
         # if blacklist command
