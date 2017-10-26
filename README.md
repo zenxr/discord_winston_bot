@@ -7,8 +7,11 @@ A bot that:
 ![Alt text](winston.png?raw=true "Optional Title")
 ## Usage (in Discord)
 * !help
-* !genji
+* !winston player PLAYER-ID (prints time and winrate for 5 most played heroes in competitive OW)
 * !winston pick hero (all|attack|support|tank|defense|team)
+* !winston playlist show (prints saved playlists)
+* !winston playlist add TITLE URL (title = name, url = YT playlist url)
+* !winston playlist remove TITLE (title must be one in playlist show)
 * !role list (list roles on this server)
 * !role (rolename) (print the permissions of a role
 * !user roles @username (list the roles of a specific user
