@@ -70,12 +70,12 @@ playlist = Playlists('playlists.txt')
 for line in playlist.output_list():
     print(line)
 print("\r\nNow adding something.\r\n")
-playlist.add("FkaNgaCosine", "http://youtube.com/1")
+playlist.add("Zeus", "http://youtube.com/1")
 for line in playlist.output_list():
     print(line)
 
 print("\r\nNow removing something.\r\n")
-playlist.remove("FkaNgaCosine")
+playlist.remove("Zeus")
 for line in playlist.output_list():
     print(line)
 
