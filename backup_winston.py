@@ -7,31 +7,26 @@ import time
 import json
 import requests
 import operator
-import config 
 
 # create a new client
 client = discord.Client()
 # secret token
-token = config.token
+token = 'MzMwMjE1NTgyNTU5NjMzNDA4.DDd2HQ.4H4Tr1pEbPaLmWgaoMGvAeYnDvU'
 # app_id for wolfram alpha API
-app_id = config.app_id
+app_id = '8KHGJP-YY7AKKGGWU'
 
 # text-to-speech variable
 ttsbool = False 
 
 # my user ID for discord
-ownerID = config.ownerID
-
-gameStatus = "type !help for info"
+ownerID = "276935311559229440"
 
 # long concatenated help message
 # '```texttexttext```' puts a neat box around the message
 helpm = " \r\nI'm Winston.\r\nAsk me anything and I'll try to answer.\r\n"
 helpm = helpm + "```Valid commands:\r\n===============\r\n"
 helpm = helpm + "!help,\r\n"
-helpm = helpm + "!winston playlist show (prints saved playlists), \r\n"
-helpm = helpm + "!winston playlist add title url (title = name, url = YT playlist url), \r\n"
-helpm = helpm + "!winston playlist remove title (title must be found via playlist show), \r\n"
+helpm = helpm + "!genji, \r\n"
 helpm = helpm + "!winston player (playerID) (gamemode -- optional), \r\n"
 helpm = helpm + "!winston pick hero (all|attack|support|tank|defense|team),\r\n"
 helpm = helpm + "!role list (list roles on this server), \r\n"
@@ -91,56 +86,6 @@ class Blacklist(object):
     def output_list(self, invokee):
         # return all members in the blacklist
         return self.blist
-class Playlists(object):
-    # represents a list of playlists with IDs
-    # functions : add, remove, create, search
-    def __init__(self, path):
-        self.path = path
-        f = open(self.path, 'r')
-        self.plists = [line.rstrip('\n') for line in f.readlines()]
-        f.close()
-    
-    def remove(self, user):
-        update = False
-        for line in self.plists:
-            if user in line:
-                self.plists.remove(line)
-                update = True
-        # if the account was in the list, update the file
-        if update:
-            f = open(self.path, 'w')
-            for line in self.plists:
-                f.write(line + '\n')
-            f.close()
-            # refresh plists after modification
-            f = open(self.path, 'r')
-            self.plists = [line.rstrip('\n') for line in f.readlines()]
-            f.close()
-    def add(self, user, url):
-        update = True
-        for line in self.plists:
-            if user in line:
-                update = False
-        # if the user was not found
-        if update:
-            f = open(self.path, 'a')
-            f.write(user + ' ' + url + '\n')
-            f.close()
-            # refresh plists after modification
-            f = open(self.path, 'r')
-            self.plists = [line.rstrip('\n') for line in f.readlines()]
-            f.close()
-    def search(self, user):
-        found = "Not found"
-        for line in self.plists:
-            if user in line:
-                chunkedLine = splitmessage(line)
-                found = chunkedLine[1]
-        return found
-
-    def output_list(self):
-        # return the playlists
-        return self.plists
 
 # function to split strings into lists of single words
 def splitmessage(s):
@@ -256,11 +201,6 @@ def playerLookup(playerID, mode):
     outputHeroData_sorted.reverse()
     return(outputHeroData_sorted)
 
-# this runs when login successful
-@client.event
-async def wait_until_login():
-    await client.change_presence(game=discord.Game(name=gameStatus))
-
 # this runs when the client initally connects
 @client.event
 async def on_ready():
@@ -273,7 +213,6 @@ async def on_ready():
     for server in client.servers:
         print(server.name)
     print('------')
-    await client.change_presence(game=discord.Game(name=gameStatus))
 
 # this runs when a member joins a server
 # (only once, when they're invited)
@@ -295,8 +234,6 @@ async def on_message(message):
     if blacklisted and message.author.id != ownerID:
         return
     # !help command
-    if message.content.startswith('!restart'):
-        await client.send_message(message.channel, "!clear")
     if message.content.startswith('!help'):
         helpmessage =  message.author.mention + helpm
         await client.send_message(message.channel, helpmessage)
@@ -318,6 +255,15 @@ async def on_message(message):
         m = splitmessage(message.content)
         if str(m) == str(m.upper()):
             await client.send_message(message.channel, message.author.mention + "\r\n*chill brah*")
+    # !sudoku command
+    elif message.content.startswith('!sudoku'):
+        await client.send_message(message.channel, "*gg*")
+        await client.send_file(message.channel, "seppuku.gif")
+
+    # !genji command
+    elif message.content.startswith('!genji'):
+        msg = '*MADA MADA*'
+        await client.send_message(message.channel, msg, tts=ttsbool)
 
     # !user, roles command    
     elif message.content.startswith('!user'):
@@ -397,34 +343,6 @@ async def on_message(message):
                 hero = pickAHero(m[3])
                 print("Picking hero (" + m[3] + ") : " + str(hero))
             await client.send_message(message.channel, message.author.mention + ' : ' + str(hero), tts=ttsbool)
-        
-        # if doing stuff with user playlists
-        elif m[1] == "playlist":
-            global playlists
-            returnMsg = ""
-            if m[2] == "show":
-                embed = discord.Embed(title="__***DJ Winston***__", description="Use '!winston playlist NAME' to enqueue a playlist")
-                pl = playlists.output_list()
-                for line in pl:
-                    splitlined = splitmessage(line)
-                    returnMsg = returnMsg + "[" + splitlined[0] + "]" + "(" + splitlined[1] + ")\r\n"
-                embed.add_field(name="Saved playlists:", value=returnMsg, inline=False)
-                await client.send_message(message.channel, embed=embed)
-            elif m[2] == "add":
-                playlists.add(m[3], m[4])
-                returnMsg = "Added playlist named " + m[3] + " to list"
-                await client.send_message(message.channel, returnMsg)
-            elif m[2] == "remove":
-                playlists.remove(m[3])
-                await client.send_message(message.channel, "Removed playlist named : " + m[3])
-            else:
-                url = playlists.search(m[2])
-                if url == "Not found":
-                    await client.send_message(message.channel, message.author.mention + ' Sorry! Playlist not found')
-                else:
-                    await client.send_message(message.channel, "!clear")
-                    await client.send_message(message.channel, message.author.mention + ' : enqueued playlist ' + m[2])
-                    await client.send_message(message.channel, "!play " + url)
         # if player lookup
         elif m[1] == "player":
             mode = "competitive"
@@ -535,5 +453,4 @@ async def on_message(message):
             await client.send_message(message.channel, message.author.mention + '\r\n' + streng, tts=ttsbool)
 
 blacklist = Blacklist('blacklist.txt')
-playlists = Playlists('playlists.txt')
 client.run(token)
