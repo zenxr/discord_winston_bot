@@ -280,7 +280,7 @@ async def on_ready():
 @client.event
 async def on_member_join(member):
     helpmessage = helpm
-    tmp = await client.send_message(member.server, helpmessage)
+    tmp = await client.send_message(member.server, "Type !help to check me out!")
 
 # this runs when any message is sent in a connected channel
 @client.event
@@ -295,11 +295,37 @@ async def on_message(message):
     if blacklisted and message.author.id != ownerID:
         return
     # !help command
-    if message.content.startswith('!restart'):
-        await client.send_message(message.channel, "!clear")
     if message.content.startswith('!help'):
-        helpmessage =  message.author.mention + helpm
-        await client.send_message(message.channel, helpmessage)
+        help_categories="1. Interaction with Lucio/MusicBot\r\n2. OverWatch commands\r\n3. Administration\r\n4. Other"
+        embed = discord.Embed(title="**__Winston's Help Menu__**", description="I'm Winston. Ask me anything not in my commands and I'll try to answer! Respond with the number representing the category you'd like to see. Ex: 1")
+        embed.add_field(name="Categories", value=help_categories, inline=False)
+        helpMessagePrompt = await client.send_message(message.author, embed=embed)
+        msg = await client.wait_for_message(author=message.author)
+        if msg.content == '1' or msg.content == '2' or msg.content == '3' or msg.content == '4':
+            # delete the previous help message
+            await client.delete_message(helpMessagePrompt)
+        if msg.content == '1':
+            embed = discord.Embed(title="__**Interaction with Lucio/MusicBot**__")
+            embed.add_field(name="!winston playlist show", value="Shows all saved playlists", inline=False)
+            embed.add_field(name="!winston playlist add", value="Format: `!winston playlist add PLAYLISTNAME URL`\r\nSave a new playlist. Must be youtube or soundcloud." , inline=False)
+            embed.add_field(name="!winston playlist remove", value="Format: `!winston playlist remove PLAYLISTNAME`\r\nRemove a saved playlist.", inline=False)
+            embed.add_field(name="!playnow", value="Remove the current queue and play a song", inline=False)
+            await client.send_message(message.author, "Send `!help` again to see other commands.", embed=embed)
+        elif msg.content == '2':
+            embed = discord.Embed(title="__**OverWatch Commands**__")
+            embed.add_field(name="!player", value="Format: `!player Poseidon-12214`\r\nSearch OW API to look up top 5 heroes for a PC OverWatch player by their ID.", inline=False)
+            embed.add_field(name="!winston pick hero", value="Format: `!winston pick hero`\r\nRandomly pick OverWatch heroes. Can pick by team, attack, defense, or offense by appending to the end of the command (!winston pick hero team)", inline=False)
+            await client.send_message(message.author, "Send `!help` again to see other commands.", embed=embed)
+        elif msg.content == '3':
+            embed = discord.Embed(title="__**Administration**__")
+            embed.add_field(name="!role list", value="Lists roles on this server", inline=False)
+            embed.add_field(name="!role ROLENAME", value="Lists the permissions for a specific role on the server", inline=False)
+            await client.send_message(message.author, "Send `!help` again to see other commands.", embed=embed)
+        elif msg.content == '4':
+            embed = discord.Embed(title="__**Other commands**__")
+            embed.add_field(name="!help", value="Displays the help message", inline=False)
+            embed.add_field(name="!hello", value="Prints a pretty response!", inline=False)
+            await client.send_message(message.author, "Send `!help` again to see other commands", embed=embed)
     if message.content.startswith('!clean'):
         deleted = await client.purge_from(message.channel, limit=50, check=is_me)
         await client.send_message(message.channel, 'Deleted {} message(s)'.format(len(deleted)))
@@ -376,10 +402,6 @@ async def on_message(message):
     # !pause, currently unfinished
     # function is to have the bot ignore input
     # until owner says resume/unpause
-    elif message.content.startswith('!pause'):
-        # stop taking input until told to resume
-        print("Paused")
-
 
     # !winston commands for wolframAlpha queries + special queries
     elif message.content.startswith('!winston'):
@@ -425,6 +447,10 @@ async def on_message(message):
                     await client.send_message(message.channel, "!clear")
                     await client.send_message(message.channel, message.author.mention + ' : enqueued playlist ' + m[2])
                     await client.send_message(message.channel, "!play " + url)
+        # to dequeue all songs in MusicBot and instantly play a song
+        elif m[1] == "playnow":
+            await client.send_mesage(message.channel, "!clear")
+            await client.send_message(message.channel, "!play " + m[2])
         # if player lookup
         elif m[1] == "player":
             mode = "competitive"
