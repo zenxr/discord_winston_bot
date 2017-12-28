@@ -24,25 +24,6 @@ ownerID = config.ownerID
 
 gameStatus = "type !help for info"
 
-# long concatenated help message
-# '```texttexttext```' puts a neat box around the message
-helpm = " \r\nI'm Winston.\r\nAsk me anything and I'll try to answer.\r\n"
-helpm = helpm + "```Valid commands:\r\n===============\r\n"
-helpm = helpm + "!help,\r\n"
-helpm = helpm + "!winston playlist show (prints saved playlists), \r\n"
-helpm = helpm + "!winston playlist add title url (title = name, url = YT playlist url), \r\n"
-helpm = helpm + "!winston playlist remove title (title must be found via playlist show), \r\n"
-helpm = helpm + "!winston player (playerID) (gamemode -- optional), \r\n"
-helpm = helpm + "!winston pick hero (all|attack|support|tank|defense|team),\r\n"
-helpm = helpm + "!role list (list roles on this server), \r\n"
-helpm = helpm + "!role (rolename) (print the permissions of a role), \r\n"
-helpm = helpm + "!user roles (@username) (list the roles of a specific user),\r\n"
-helpm = helpm + "!tts (toggles bot's text-to-speech. Currently : " + str(ttsbool) + "),\r\n"
-helpm = helpm + "!clean (cleans bot messages, requires Manage Messages permission),\r\n"
-helpm = helpm + "!winston blacklist (add|remove) @user,\r\n"
-helpm = helpm + "!winston blacklist print (prints the current blacklisted IDs),\r\n"
-helpm = helpm + "!winston (question, math included)```"
-
 # create a wolfram alpha client
 clientWA = wolframalpha.Client(app_id)
 
@@ -279,7 +260,6 @@ async def on_ready():
 # (only once, when they're invited)
 @client.event
 async def on_member_join(member):
-    helpmessage = helpm
     tmp = await client.send_message(member.server, "Type !help to check me out!")
 
 # this runs when any message is sent in a connected channel
@@ -324,7 +304,7 @@ async def on_message(message):
         elif msg.content == '4':
             embed = discord.Embed(title="__**Other commands**__")
             embed.add_field(name="!help", value="Displays the help message", inline=False)
-            embed.add_field(name="!hello", value="Prints a pretty response!", inline=False)
+            embed.add_field(name="!winston hello", value="Prints a pretty response!", inline=False)
             await client.send_message(message.author, "Send `!help` again to see other commands", embed=embed)
     if message.content.startswith('!clean'):
         deleted = await client.purge_from(message.channel, limit=50, check=is_me)
