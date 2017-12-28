@@ -384,9 +384,9 @@ async def on_message(message):
     # until owner says resume/unpause
     # to dequeue all songs in MusicBot and instantly play a song
     elif message.content.startswith('!playnow'):
-        m = splitmessage(message.content)
+        query = message.content
         await client.send_message(message.channel, "!clear")
-        await client.send_message(message.channel, "!play " + m[1])
+        await client.send_message(message.channel, "!play " + query.split(' ', 1)[1])
  
     # !winston commands for wolframAlpha queries + special queries
     elif message.content.startswith('!winston'):
