@@ -382,7 +382,12 @@ async def on_message(message):
     # !pause, currently unfinished
     # function is to have the bot ignore input
     # until owner says resume/unpause
-
+    # to dequeue all songs in MusicBot and instantly play a song
+    elif message.content.startswith('!playnow'):
+        m = splitmessage(message.content)
+        await client.send_message(message.channel, "!clear")
+        await client.send_message(message.channel, "!play " + m[1])
+ 
     # !winston commands for wolframAlpha queries + special queries
     elif message.content.startswith('!winston'):
         # split message into a list of words
@@ -427,11 +432,7 @@ async def on_message(message):
                     await client.send_message(message.channel, "!clear")
                     await client.send_message(message.channel, message.author.mention + ' : enqueued playlist ' + m[2])
                     await client.send_message(message.channel, "!play " + url)
-        # to dequeue all songs in MusicBot and instantly play a song
-        elif m[1] == "playnow":
-            await client.send_mesage(message.channel, "!clear")
-            await client.send_message(message.channel, "!play " + m[2])
-        # if player lookup
+       # if player lookup
         elif m[1] == "player":
             mode = "competitive"
             # future functionality, if checking quickplay stuff edit ehre
