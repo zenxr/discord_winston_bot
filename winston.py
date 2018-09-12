@@ -146,7 +146,7 @@ def pickAHero(category):
     attack = ["Doomfist", "Genji", "McCree", "Pharah", "Reaper", "Soldier76", "Sombra"]
     defense = ["Tracer", "Bastion", "Hanzo", "Junkrat", "Mei", "Torbjorn", "Widowmaker"]
     tank = ["D.Va", "Orisa", "Reinhardt", "Roadhog", "Winston", "Zarya"]
-    support = ["Ana", "Lucio", "Mercy", "Symmetra", "Zenyatta"]
+    support = ["Ana", "Lucio", "Mercy", "Symmetra", "Zenyatta", "Brigette", "Moira"]
     allheros = [attack, defense, tank, support]
     if category == "all":
         # generate random # to pick one of the hero types
@@ -260,7 +260,7 @@ async def on_ready():
 # (only once, when they're invited)
 @client.event
 async def on_member_join(member):
-    tmp = await client.send_message(member.server, "Type !help to check me out!")
+    tmp = await client.send_message(member.server, "Welcome to the fam!\r\nType !help to check me out!")
 
 # this runs when any message is sent in a connected channel
 @client.event
@@ -272,8 +272,10 @@ async def on_message(message):
         if ("<@!" + message.author.id + ">" == name) or ("<@" + message.author.id + ">" == name):
             # blacklisted user, deny access
             blacklisted = True
-    if blacklisted and message.author.id != ownerID:
-        return
+    # temporarily adding a new 'admin' manually
+    if blacklisted:
+        if message.author.id != (ownerID or '1597242631655788161'):
+            return
     # !help command
     if message.content.startswith('!help'):
         help_categories="1. Interaction with Lucio/MusicBot\r\n2. OverWatch commands\r\n3. Administration\r\n4. Other"
@@ -305,7 +307,11 @@ async def on_message(message):
             embed = discord.Embed(title="__**Other commands**__")
             embed.add_field(name="!help", value="Displays the help message", inline=False)
             embed.add_field(name="!winston hello", value="Prints a pretty response!", inline=False)
+            embed.add_field(name="!cleanAll", value="Deletes 50 messages, regardless of author.", inline=False)
             await client.send_message(message.author, "Send `!help` again to see other commands", embed=embed)
+    if message.content.startswith('!cleanAll'):
+        deleted = await client.purge_from(message.channel, limit=50)
+        await client.send_message(message.channel, 'Deleted {} message(s)'.format(len(deleted)))
     if message.content.startswith('!clean'):
         deleted = await client.purge_from(message.channel, limit=50, check=is_me)
         await client.send_message(message.channel, 'Deleted {} message(s)'.format(len(deleted)))
@@ -531,7 +537,7 @@ async def on_message(message):
                     for pod in res.pods:
                         for sub in pod.subpods:
                             # concatenate the output string
-                            streng = streng + sub.text
+                          streng = streng + sub.text
             # occurs when WA cant interpret query
             except (AttributeError):
                 print("Invalid message")
