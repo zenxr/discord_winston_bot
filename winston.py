@@ -9,6 +9,8 @@ import requests
 import operator
 import config 
 
+# import the commands module
+from commands import *
 # create a new client
 client = discord.Client()
 # secret token
@@ -265,6 +267,10 @@ async def on_member_join(member):
 # this runs when any message is sent in a connected channel
 @client.event
 async def on_message(message):
+    # testing - delete this
+    if message.content.startswith('!testinghello'):
+        print(hello.hello(message))
+    print(type(message))
     # use the global blacklist instance
     global blacklist
     blacklisted = False
