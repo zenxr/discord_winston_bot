@@ -7,7 +7,9 @@ import time
 import json
 import requests
 import operator
-import config 
+import config
+import classes.blacklist as Blacklist
+import classes.playlist as Playlist
 
 # import the commands module
 from commands import *
@@ -29,101 +31,6 @@ gameStatus = "type !help for info"
 # create a wolfram alpha client
 clientWA = wolframalpha.Client(app_id)
 
-class Blacklist(object):
-    # represents a blacklist
-    # functions : add, remove, create, search
-    
-    def __init__(self, path):
-        self.path = path
-        f = open(self.path, 'r')
-        self.blist = [line.rstrip('\n') for line in f.readlines()]
-        f.close()
-
-    def remove(self, account, invokee):
-        update = False
-        for line in self.blist:
-            if account in line:
-                self.blist.remove(account)
-                update = True
-        # if the account was in the list
-        if update == True:
-            f = open(self.path, 'w')
-            for line in self.blist:
-                f.write(line + '\n')
-            f.close()
-            # refresh blist after modification
-            f = open(self.path, 'r')
-            self.blist = [line.rstrip('\n') for line in f.readlines()]
-            f.close()
-
-    def add(self, account, invokee):
-        update = True
-        for line in self.blist:
-            if account in line:
-                update = False
-        # if the account was not found
-        if update == True:
-            f = open(self.path, 'a')
-            f.write(account + '\n')
-            f.close()
-            # refresh blist after modification
-            f = open(self.path, 'r')
-            self.blist = [line.rstrip('\n') for line in f.readlines()]
-            f.close()
-                    
-    def output_list(self, invokee):
-        # return all members in the blacklist
-        return self.blist
-class Playlists(object):
-    # represents a list of playlists with IDs
-    # functions : add, remove, create, search
-    def __init__(self, path):
-        self.path = path
-        f = open(self.path, 'r')
-        self.plists = [line.rstrip('\n') for line in f.readlines()]
-        f.close()
-    
-    def remove(self, user):
-        update = False
-        for line in self.plists:
-            if user in line:
-                self.plists.remove(line)
-                update = True
-        # if the account was in the list, update the file
-        if update:
-            f = open(self.path, 'w')
-            for line in self.plists:
-                f.write(line + '\n')
-            f.close()
-            # refresh plists after modification
-            f = open(self.path, 'r')
-            self.plists = [line.rstrip('\n') for line in f.readlines()]
-            f.close()
-    def add(self, user, url):
-        update = True
-        for line in self.plists:
-            if user in line:
-                update = False
-        # if the user was not found
-        if update:
-            f = open(self.path, 'a')
-            f.write(user + ' ' + url + '\n')
-            f.close()
-            # refresh plists after modification
-            f = open(self.path, 'r')
-            self.plists = [line.rstrip('\n') for line in f.readlines()]
-            f.close()
-    def search(self, user):
-        found = "Not found"
-        for line in self.plists:
-            if user in line:
-                chunkedLine = splitmessage(line)
-                found = chunkedLine[1]
-        return found
-
-    def output_list(self):
-        # return the playlists
-        return self.plists
 
 # function to split strings into lists of single words
 def splitmessage(s):
@@ -143,101 +50,6 @@ def splitmessage(s):
 def is_me(m):
     return m.author == client.user
 
-# function to randomly select a hero, pass it a string
-def pickAHero(category):
-    attack = ["Doomfist", "Genji", "McCree", "Pharah", "Reaper", "Soldier76", "Sombra"]
-    defense = ["Tracer", "Bastion", "Hanzo", "Junkrat", "Mei", "Torbjorn", "Widowmaker"]
-    tank = ["D.Va", "Orisa", "Reinhardt", "Roadhog", "Winston", "Zarya"]
-    support = ["Ana", "Lucio", "Mercy", "Symmetra", "Zenyatta", "Brigette", "Moira"]
-    allheros = [attack, defense, tank, support]
-    if category == "all":
-        # generate random # to pick one of the hero types
-        num = random.randint(0, len(allheros)-1)
-        # randomly pick one of the heroes from the hero type picked
-        return(allheros[num][random.randint(0, len(allheros[num])-1)])
-    elif category == "defense":
-        # pick one of the members in defense randomly
-        return(allheros[1][random.randint(0, len(allheros[1])-1)])
-    elif category == "attack":
-        return(allheros[0][random.randint(0, len(allheros[0])-1)])
-    elif category == "tank":
-        return(allheros[2][random.randint(0, len(allheros[2])-1)])
-    elif category == "support":
-        return(allheros[3][random.randint(0, len(allheros[3])-1)])
-    elif category == "team":
-        attDef = random.randint(0, 1)
-        result = ['', '', '', '', '', '']
-        if attDef == 0:
-            result[0] = pickAHero("attack")
-        else:
-            result[0] = pickAHero("defense")
-        attDef = random.randint(0, 1)
-        if attDef == 0:
-            result[1] = pickAHero("attack")
-            while result[0] == result[1]:
-                result[1] = pickAHero("attack")
-        else:
-            result[1] = pickAHero("defense")
-            while result[0] == result[1]:
-                result[1] = pickAHero("defense")
-        result[2] = pickAHero("tank")
-        result[3] = pickAHero("tank")
-        while result[3] == result[2]:
-            result[3] = pickAHero("tank")
-        result[4] = pickAHero("support")
-        result[5] = pickAHero("support")
-        while result[5] == result[4]:
-            result[5] = pickAHero("tank")
-        return(result)
-    else:
-        # if the function is ran & invalid string, return error
-        return("Valid options : defense, attack, tank, support")
-
-def playerLookup(playerID, mode):
-    # have to customize user agent
-    head = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0'
-    }
-    # open the url
-    url = "https://owapi.net/api/v3/u/"
-    # configure parameters (will be changed later)
-    user = 'Poseidon-12214'
-    category = 'heroes'
-    gameType = mode
-    # make the request and convert the json to dictionary
-    r = requests.get(url + playerID + "/" + category, headers=head)
-    data = r.json()
-    # get play_time data
-    playTime = data["us"]["heroes"]["playtime"][gameType]
-    # remove all heroes with 0 hours
-    cleanPT = {hero : time for hero,time in playTime.items() if time}
-    # convert playtime to minutes
-    for key in cleanPT:
-        cleanPT[key] = int(cleanPT[key] * 60)
-    # sort into a decreasing list of tuples
-    sortedPT = sorted(cleanPT.items(), key=operator.itemgetter(1))
-    sortedPT.reverse()
-    # we now have a list of heroes and playtimes sorted by most played in a list of tuples
-    stats = data["us"]["heroes"]["stats"][gameType]
-    # we only want to include the 5 heroes with most playtime
-    count = 0
-    outputHeroData = {}
-    for hero in sortedPT:
-        if count == 6:
-            break
-        count = count + 1
-        games_played = stats[hero[0]]["general_stats"]["games_played"]
-        if (stats[hero[0]]["general_stats"]["games_lost"] == games_played):
-            games_won = 0
-        else:
-            games_won = stats[hero[0]]["general_stats"]["games_won"]
-        if games_played == 0:
-            winRate = 0
-        else:
-            winRate = games_won/games_played
-        outputHeroData[hero[0]] = [hero[1], winRate]
-    outputHeroData_sorted = sorted(outputHeroData.items(), key=lambda x:x[1])
-    outputHeroData_sorted.reverse()
-    return(outputHeroData_sorted)
 
 # this runs when login successful
 @client.event
@@ -267,10 +79,7 @@ async def on_member_join(member):
 # this runs when any message is sent in a connected channel
 @client.event
 async def on_message(message):
-    # testing - delete this
-    if message.content.startswith('!testinghello'):
-        print(hello.hello(message))
-    print(type(message))
+
     # use the global blacklist instance
     global blacklist
     blacklisted = False
@@ -282,6 +91,13 @@ async def on_message(message):
     if blacklisted:
         if message.author.id != (ownerID or '1597242631655788161'):
             return
+
+    # using the commands submodule
+    if message.content.startswith('!winston hello'):
+        await client.send_message(message.channel, hello.hello(message))
+    if message.content.startswith('!winston pick'):
+        await client.send_message(message.channel, pick.pick(message))
+
     # !help command
     if message.content.startswith('!help'):
         help_categories="1. Interaction with Lucio/MusicBot\r\n2. OverWatch commands\r\n3. Administration\r\n4. Other"
@@ -331,11 +147,6 @@ async def on_message(message):
             ttsbool = True
         response = "*Toggling text-to-speech from " + str(ttsprev) + " to " + str(ttsbool) + ".*"
         await client.send_message(message.channel, response)
-
-    if str(message.content) == str(message.content).isupper():
-        m = splitmessage(message.content)
-        if str(m) == str(m.upper()):
-            await client.send_message(message.channel, message.author.mention + "\r\n*chill brah*")
 
     # !user, roles command    
     elif message.content.startswith('!user'):
@@ -398,27 +209,15 @@ async def on_message(message):
     elif message.content.startswith('!playnow'):
         query = message.content
         await client.send_message(message.channel, "!clear")
-        await client.send_message(message.channel, "!play " + query.split(' ', 1)[1])
+        await client.send_message(message.channel, playnow.playnow(message))
  
     # !winston commands for wolframAlpha queries + special queries
     elif message.content.startswith('!winston'):
         # split message into a list of words
         m = splitmessage(message.content)
-
-        # if message starts with "!winston pick hero"
-        if m[1] == "pick" and m[2] == "hero":
-            # if message = "!winston pick hero"
-            if len(m) == 3:
-                hero = pickAHero("all")
-                print("Picking hero : " + hero)
-            else:
-                # pick with the 4th word as the specified subtype of hero
-                hero = pickAHero(m[3])
-                print("Picking hero (" + m[3] + ") : " + str(hero))
-            await client.send_message(message.channel, message.author.mention + ' : ' + str(hero), tts=ttsbool)
         
         # if doing stuff with user playlists
-        elif m[1] == "playlist":
+        if m[1] == "playlist":
             global playlists
             returnMsg = ""
             if m[2] == "show":
@@ -506,10 +305,6 @@ async def on_message(message):
                 # either no name for add or remove or invalid blacklist command
                 await client.send_message(message.channel, "Invalid input. Make sure you @mention the user.")
 
-        # !winston hello command, send dank bananas
-        elif str(message.content) == "!winston hello":
-            await client.send_file(message.channel, "winston.png")
-            await client.send_message(message.channel, message.author.mention + '\r\n' + "Hello.", tts=ttsbool)
         # if not a hard-coded command, query WA
         else:
             print("Entering query")
@@ -553,6 +348,6 @@ async def on_message(message):
             # send the output message
             await client.send_message(message.channel, message.author.mention + '\r\n' + streng, tts=ttsbool)
 
-blacklist = Blacklist('blacklist.txt')
-playlists = Playlists('playlists.txt')
+blacklist = Blacklist.Blacklist('blacklist.txt')
+playlists = Playlist.Playlists('playlists.txt')
 client.run(token)

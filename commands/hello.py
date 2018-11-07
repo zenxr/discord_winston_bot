@@ -1,4 +1,4 @@
 from discord.message import Message
 
 def hello(message):
-    return ("Hello, human!")
+    return message.author.mention + '\r\n' + "Hello human."
