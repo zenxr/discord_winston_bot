@@ -38,7 +38,7 @@ speedtest-cli==2.0.2
 ufw==0.35
 unattended-upgrades==0.1
 update-checker==0.16
-urllib3==1.22
+urllib3==1.26.5
 websockets==3.4
 wolframalpha==3.0
 xmltodict==0.11.0
